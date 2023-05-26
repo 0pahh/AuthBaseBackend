@@ -50,5 +50,4 @@ Ce projet a été développé par [0pahh] ([@0pahh](https://github.com/0pahh)).
 
 ## Licence
 
-Ce projet est sous licence MIT.
-[https://opensource.org/licenses/MIT](https://opensource.org/licenses/MIT)
+Ce projet est sous licence MIT - consultez le fichier [https://opensource.org/licenses/MIT](https://opensource.org/licenses/MIT) pour plus de détails.
