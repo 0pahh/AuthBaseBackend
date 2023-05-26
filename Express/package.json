@@ -1,0 +1,23 @@
+{
+  "name": "back_l",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node --watch server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^5.0.1",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "express-validator": "^6.15.0",
+    "helmet": "^6.1.5",
+    "jsonwebtoken": "^9.0.0",
+    "mariadb": "^3.1.1",
+    "redis": "^4.6.6",
+    "response-time": "^2.3.2"
+  }
+}

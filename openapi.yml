@@ -1,0 +1,575 @@
+openapi: "3.0.2"
+info:
+  title: AuthAPI Libraires
+  version: "1.0"
+servers:
+  - url: http://localhost:8081/api/v1/
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    paramName:
+      type: string
+      minLength: 2
+      maxLength: 50
+      description: Nom de l'utilisateur
+    paramSiret:
+      type: string
+      pattern: "^[0-9]{14}$"
+    paramSirene:
+      type: string
+      pattern: "^[0-9]{9}$"
+    paramAddress:
+      type: string
+    paramPhone:
+      type: string
+      format: mobile-phone
+    paramMail:
+      type: string
+      format: email
+    paramUserID:
+      type: integer
+    paramUserCredentials:
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 5
+          maxLength: 23
+        password:
+          type: string
+          minLength: 8
+          maxLength: 40
+          pattern: "^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/]).{6,}$"
+    paramToken:
+      type: string
+      minLength: 64
+      maxLength: 64
+    paramlastConnection:
+      type: string
+      format: date-time
+    paramCreationDate:
+      type: string
+      format: date-time
+    paramLastPasswordUpdate:
+      type: string
+      format: date-time
+    errorObject:
+      type: object
+      properties:
+        value:
+          type: string
+          description: Valeur du paramètre envoyé
+        msg:
+          type: string
+          description: Message d'erreur
+        param:
+          type: string
+          description: Nom du paramètre
+        location:
+          type: string
+          description: Emplacement du paramètre
+    successMessage:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Message indiquant le succès de l'opération
+    serverErrorMessage:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Message indiquant l'erreur interne
+    notFoundMessage:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Message indiquant que la ressource n'a pas été trouvée
+    unauthorizedMessage:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Message indiquant que l'utilisateur n'est pas autorisé à effectuer cette action
+    redondantDataMessage:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Message indiquant que les données envoyées sont redondantes donc l'opération ne peut pas être effectuée
+    loginResponse:
+      type: object
+      properties:
+        user:
+          type: object
+          properties:
+            id:
+              type: string
+              description: ID de l'utilisateur
+            username:
+              type: string
+            name:
+              $ref: "#/components/schemas/paramName"
+            siret:
+              $ref: "#/components/schemas/paramSiret"
+            sirene:
+              $ref: "#/components/schemas/paramSirene"
+            address:
+              $ref: "#/components/schemas/paramAddress"
+            phone:
+              $ref: "#/components/schemas/paramPhone"
+            mail:
+              $ref: "#/components/schemas/paramMail"
+            lastConnection:
+              $ref: "#/components/schemas/paramlastConnection"
+            creationDate:
+              $ref: "#/components/schemas/paramCreationDate"
+            lastPasswordUpdate:
+              $ref: "#/components/schemas/paramLastPasswordUpdate"
+        accessToken:
+          type: string
+
+paths:
+  /login:
+    post:
+      summary: Connexion d'un utilisateur
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/paramUserCredentials"
+      responses:
+        "200":
+          description: Connexion réussie
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/loginResponse"
+        "400":
+          description: Requête invalide
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorObject"
+        "401":
+          description: Email et/ou mot de passe incorrect
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Message indiquant que l'email et/ou le mot de passe est incorrect
+        "500":
+          description: Erreur interne
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/serverErrorMessage"
+      tags:
+        - Authentication
+
+  /sign-up:
+    post:
+      summary: Inscription de l'utilisateur
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/paramUserCredentials"
+                - type: object
+                  properties:
+                    name:
+                      $ref: "#/components/schemas/paramName"
+                    siret:
+                      $ref: "#/components/schemas/paramSiret"
+                    sirene:
+                      $ref: "#/components/schemas/paramSirene"
+                    address:
+                      $ref: "#/components/schemas/paramAddress"
+                    phone:
+                      $ref: "#/components/schemas/paramPhone"
+                    mail:
+                      $ref: "#/components/schemas/paramMail"
+      responses:
+        "201":
+          description: La création de compte a réussi
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/successMessage"
+        "400":
+          description: Requête invalide
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorObject"
+        "500":
+          description: Erreur interne
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/serverErrorMessage"
+      tags:
+        - Authentication
+
+  /send-pwd-reset-mail/:
+    post:
+      summary: Permet d'envoyer un mail de réinitialisation de mot de passe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                mail:
+                  $ref: "#/components/schemas/paramMail"
+      responses:
+        "200":
+          description: Le mail a été envoyé
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/successMessage"
+        "400":
+          description: Requête invalide
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorObject"
+        "401":
+          description: Token expiré ou invalide
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/unauthorizedMessage"
+        "500":
+          description: Erreur interne
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/serverErrorMessage"
+      tags:
+        - Password Reset
+
+  /check-reset-token/{token}/:
+    get:
+      summary: Permet de vérifier la validité d'un token de réinitialisation de mot de passe pour un utilisateur
+      parameters:
+        - in: path
+          name: token
+          schema:
+            $ref: "#/components/schemas/paramToken"
+          required: true
+          description: Token de réinitialisation de mot de passe
+      responses:
+        "200":
+          description: Le token est valide
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/successMessage"
+        "400":
+          description: Requête invalide
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorObject"
+        "401":
+          description: Token expiré ou invalide
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/unauthorizedMessage"
+        "500":
+          description: Erreur interne
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/serverErrorMessage"
+      tags:
+        - Password Reset
+
+  /reset-password/:
+    post:
+      summary: Permet de réinitialiser le mot de passe d'un utilisateur avec le token fourni par mail
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                token:
+                  $ref: "#/components/schemas/paramToken"
+      responses:
+        "201":
+          description: Le mot de passe a été changé avec succès
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/successMessage"
+        "400":
+          description: Requête invalide
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/errorObject"
+                  - $ref: "#/components/schemas/redondantDataMessage"
+        "401":
+          description: Token expiré ou invalide
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/unauthorizedMessage"
+        "404":
+          description: Utilisateur non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/notFoundMessage"
+        "500":
+          description: Erreur interne
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/serverErrorMessage"
+      tags:
+        - Password Reset
+
+  /users/:
+    get:
+      summary: Ne renvoie rien pour le moment
+      security:
+        - bearerAuth: []
+      responses:
+        "204":
+          description: Pas de contenu
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/successMessage"
+      tags:
+        - Users
+
+  /users/{userID}/check-jwt:
+    get:
+      summary: Permet de vérifier la validité d'un token depuis un appel externe
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: userID
+          schema:
+            type: string
+          required: true
+          description: identifiant de l'utilisateur
+      responses:
+        "200":
+          description: Le token est valide
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/successMessage"
+        "400":
+          description: Requête invalide
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorObject"
+        "401":
+          description: Le token est invalide
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Message indiquant que le jeton est invalide
+        "500":
+          description: Erreur interne
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/serverErrorMessage"
+      tags:
+        - Users
+
+  /users/{userID}/phone-number:
+    patch:
+      summary: Permet de mettre à jour le numéro de téléphone de l'utilisateur
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                phone:
+                  $ref: "#/components/schemas/paramPhone"
+                userID:
+                  $ref: "#/components/schemas/paramUserID"
+      responses:
+        "201":
+          description: Le numéro de téléphone a été mis à jour
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/successMessage"
+        "400":
+          description: Requête invalide
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorObject"
+        "404":
+          description: Utilisateur non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/notFoundMessage"
+        "500":
+          description: Erreur interne
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/serverErrorMessage"
+      tags:
+        - Users
+
+  /users/{userID}/mail:
+    patch:
+      summary: Permet de mettre à jour le mail de l'utilisateur
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                mail:
+                  $ref: "#/components/schemas/paramMail"
+                userID:
+                  $ref: "#/components/schemas/paramUserID"
+      responses:
+        "201":
+          description: Le mail a été mis à jour
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/successMessage"
+        "400":
+          description: Requête invalide
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorObject"
+        "404":
+          description: Utilisateur non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/notFoundMessage"
+        "500":
+          description: Erreur interne
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/serverErrorMessage"
+      tags:
+        - Users
+
+  /users/{userID}/adress:
+    patch:
+      summary: Permet de mettre à jour l'adresse de l'utilisateur
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                address:
+                  $ref: "#/components/schemas/paramAddress"
+                userID:
+                  $ref: "#/components/schemas/paramUserID"
+      responses:
+        "201":
+          description: L'adresse a été mise à jour
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/successMessage"
+        "400":
+          description: Requête invalide
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorObject"
+        "404":
+          description: Utilisateur non trouvé
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/notFoundMessage"
+        "500":
+          description: Erreur interne
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/serverErrorMessage"
+      tags:
+        - Users
+
+  /users/invalidate-tokens/:
+    delete:
+      summary: Permet de supprimer tous les tokens d'un utilisateur
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: userID
+          schema:
+            $ref: "#/components/schemas/paramUserID"
+          required: true
+          description: identifiant de l'utilisateur
+      responses:
+        "200":
+          description: Les tokens ont été supprimés
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/successMessage"
+        "400":
+          description: Requête invalide
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/errorObject"
+        "500":
+          description: Erreur interne
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/serverErrorMessage"
+        "503":
+          description: Service indisponible (redis non connecté)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/serverErrorMessage"
+      tags:
+        - Users

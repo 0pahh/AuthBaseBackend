@@ -1,0 +1,46 @@
+version: "3.9"
+services:
+  mariadb:
+    build:
+      context: ./MariaDB
+      dockerfile: ./Dockerfile
+    restart: always
+    ports:
+      - "3306:3306"
+  redis:
+    image: redis:latest
+    restart: always
+    environment:
+      - REDIS_PASSWORD=wP12n9Xa8hX#95*
+    ports:
+      - "6379:6379"
+
+  express:
+    build:
+      context: ./Express
+      dockerfile: ./Dockerfile
+    restart: always
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=wP12n9Xa8hX#95*
+      - DB_HOST=mariadb
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=123456789siuuu
+      - DB_DATABASE=database
+      - SMTP_HOST=mailhog
+      - SMTP_PORT=1025
+      - SMTP_USER=root
+      - SMTP_PASSWORD=123456root%
+      - JWT_SECRET=ONNEPEUTPASDEVINERCECLESECRETXD
+      - JWT_ACCESS_EXPIRATION=1d
+    ports:
+      - "8080:8080"
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    restart: always
+    ports:
+      - "8025:8025"
+      - "1025:1025"
